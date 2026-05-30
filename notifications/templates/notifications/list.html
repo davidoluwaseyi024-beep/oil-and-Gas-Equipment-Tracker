@@ -1,0 +1,39 @@
+{% extends 'tracker/base.html' %}
+{% block title %}All Notifications{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="notif-page">
+  <div class="notif-page__actions">
+    <a href="{% url 'notifications:mark_all_read' %}" class="btn btn--secondary">
+      ✅ Mark all as read
+    </a>
+  </div>
+
+  {% for note in notifications %}
+  <div class="notif-page__item notif-item--{{ note.status }}" id="notif-{{ note.pk }}">
+    <div class="notif-page__icon">
+      {% if note.status == 'critical' %}🔴
+      {% elif note.status == 'overdue' %}⚠️
+      {% elif note.status == 'under_maintenance' %}🛠️
+      {% elif note.status == 'out_of_service' %}🚫
+      {% else %}🔧{% endif %}
+    </div>
+    <div class="notif-page__body">
+      <strong>{{ note.equipment.name }}</strong>
+      <p>{{ note.message }}</p>
+      <small>{{ note.created_at|date:"d M Y, H:i" }}
+        {% if note.is_read %} · <span style="color:#6b7280">Read</span>{% endif %}
+      </small>
+    </div>
+    <button class="notif-item__dismiss"
+            data-id="{{ note.pk }}"
+            data-url="{% url 'notifications:dismiss' note.pk %}">✕</button>
+  </div>
+  {% empty %}
+  <div class="notif-dropdown__empty" style="padding:40px;text-align:center;">
+    ✅ You have no notifications.
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'tracker/base.html' %}
+{% block title %}{{ action }} Equipment — Equipment Tracker{% endblock %}
+{% block nav_add %}{% if action == 'Add' %}active{% endif %}{% endblock %}
+{% block page_title %}{{ action }} Equipment{% endblock %}
+
+{% block topbar_actions %}
+  {% if equipment %}
+    <a href="{% url 'tracker:equipment_detail' equipment.pk %}" class="btn btn--ghost btn--sm">Cancel</a>
+  {% else %}
+    <a href="{% url 'tracker:equipment_list' %}" class="btn btn--ghost btn--sm">Cancel</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="form-layout">
+  <form method="post" class="form-card">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert--error">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="form-section">
+      <h3 class="form-section__title">Identity</h3>
+      <div class="form-row form-row--2col">
+        <div class="form-group">
+          <label class="form-label" for="{{ form.name.id_for_label }}">
+            Equipment Name <span class="required">*</span>
+          </label>
+          {{ form.name }}
+          {% if form.name.errors %}<span class="form-error">{{ form.name.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="{{ form.serial_number.id_for_label }}">
+            Serial Number <span class="required">*</span>
+          </label>
+          {{ form.serial_number }}
+          {% if form.serial_number.errors %}<span class="form-error">{{ form.serial_number.errors.0 }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="{{ form.location.id_for_label }}">Location <span class="required">*</span></label>
+        {{ form.location }}
+        {% if form.location.errors %}<span class="form-error">{{ form.location.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3 class="form-section__title">Status &amp; Condition</h3>
+      <div class="form-row form-row--3col">
+        <div class="form-group">
+          <label class="form-label">Operational Status</label>
+          {{ form.status }}
+          {% if form.status.errors %}<span class="form-error">{{ form.status.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Physical Condition</label>
+          {{ form.condition }}
+          {% if form.condition.errors %}<span class="form-error">{{ form.condition.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="form-group form-group--checkbox">
+          <label class="checkbox-label">
+            {{ form.critical }}
+            <span>Safety / Production Critical</span>
+          </label>
+          {% if form.critical.errors %}<span class="form-error">{{ form.critical.errors.0 }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3 class="form-section__title">Service Schedule</h3>
+      <div class="form-row form-row--2col">
+        <div class="form-group">
+          <label class="form-label">Last Service Date</label>
+          {{ form.last_service_date }}
+          {% if form.last_service_date.errors %}<span class="form-error">{{ form.last_service_date.errors.0 }}</span>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Next Due Date</label>
+          {{ form.next_due_date }}
+          {% if form.next_due_date.errors %}<span class="form-error">{{ form.next_due_date.errors.0 }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3 class="form-section__title">Notes</h3>
+      <div class="form-group">
+        <label class="form-label">Additional Remarks</label>
+        {{ form.notes }}
+        {% if form.notes.errors %}<span class="form-error">{{ form.notes.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn--primary">
+        {% if action == 'Add' %}Add Equipment{% else %}Save Changes{% endif %}
+      </button>
+      {% if equipment %}
+        <a href="{% url 'tracker:equipment_detail' equipment.pk %}" class="btn btn--ghost">Cancel</a>
+      {% else %}
+        <a href="{% url 'tracker:equipment_list' %}" class="btn btn--ghost">Cancel</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

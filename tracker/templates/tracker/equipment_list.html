@@ -1,0 +1,119 @@
+{% extends 'tracker/base.html' %}
+{% block title %}{% if is_overdue_view %}Overdue{% else %}All Equipment{% endif %} — Equipment Tracker{% endblock %}
+{% block nav_list %}{% if not is_overdue_view %}active{% endif %}{% endblock %}
+{% block nav_overdue %}{% if is_overdue_view %}active{% endif %}{% endblock %}
+{% block page_title %}{% if is_overdue_view %}Overdue Equipment{% else %}All Equipment{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'tracker:equipment_create' %}" class="btn btn--primary btn--sm">+ Add Equipment</a>
+{% endblock %}
+
+{% block content %}
+
+{% if not is_overdue_view %}
+<!-- Search & Filter bar -->
+<div class="filter-bar">
+  <form method="get" class="filter-form">
+    <div class="filter-form__search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="form-input search-input" type="text" name="q" value="{{ q }}" placeholder="Search name, serial, location…"/>
+    </div>
+    <select name="status" class="form-select filter-select">
+      <option value="">All Statuses</option>
+      {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="condition" class="form-select filter-select">
+      <option value="">All Conditions</option>
+      {% for val, label in condition_choices %}
+        <option value="{{ val }}" {% if condition == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="critical" class="form-select filter-select">
+      <option value="">All Equipment</option>
+      <option value="yes" {% if critical == 'yes' %}selected{% endif %}>Critical Only</option>
+    </select>
+    <button type="submit" class="btn btn--secondary btn--sm">Filter</button>
+    {% if q or status or condition or critical %}
+      <a href="{% url 'tracker:equipment_list' %}" class="btn btn--ghost btn--sm">Clear</a>
+    {% endif %}
+  </form>
+</div>
+{% endif %}
+
+{% if is_overdue_view %}
+<div class="alert alert--warning">
+  Showing only equipment past its scheduled service date. Prioritise these immediately.
+  <a href="{% url 'tracker:equipment_list' %}">View all equipment →</a>
+</div>
+{% endif %}
+
+<div class="table-card">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Serial No.</th>
+        <th>Location</th>
+        <th>Condition</th>
+        <th>Next Service</th>
+        <th>Status</th>
+        <th>Critical</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for eq in equipments %}
+      <tr class="{% if eq.is_overdue %}row--overdue{% endif %}">
+        <td>
+          <a href="{% url 'tracker:equipment_detail' eq.pk %}" class="table-link">{{ eq.name }}</a>
+        </td>
+        <td><code>{{ eq.serial_number }}</code></td>
+        <td>{{ eq.location }}</td>
+        <td>
+          {% if eq.condition == 'good' %}<span class="badge badge--green">Good</span>
+          {% elif eq.condition == 'fair' %}<span class="badge badge--yellow">Fair</span>
+          {% else %}<span class="badge badge--red">Poor</span>{% endif %}
+        </td>
+        <td>
+          {% if eq.next_due_date %}
+            {{ eq.next_due_date|date:"d M Y" }}
+            {% if eq.is_overdue %}
+              <span class="overdue-tag">OVERDUE</span>
+            {% elif eq.days_until_due <= 14 %}
+              <span class="due-soon-tag">Soon</span>
+            {% endif %}
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+        <td>{% include 'tracker/_status_badge.html' with status=eq.status %}</td>
+        <td>
+          {% if eq.critical %}<span class="critical-dot" title="Critical">⚑</span>{% else %}—{% endif %}
+        </td>
+        <td class="table-actions">
+          <a href="{% url 'tracker:equipment_detail' eq.pk %}" class="action-link">View</a>
+          <a href="{% url 'tracker:equipment_edit' eq.pk %}" class="action-link">Edit</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="8" class="empty-state">
+          {% if is_overdue_view %}✓ No overdue equipment — everything is on schedule.
+          {% elif q %}No results for "{{ q }}".
+          {% else %}No equipment found. <a href="{% url 'tracker:equipment_create' %}">Add the first one →</a>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="table-footer">
+  <span class="text-muted">{{ equipments|length }} record{% if equipments|length != 1 %}s{% endif %}</span>
+</div>
+{% endblock %}

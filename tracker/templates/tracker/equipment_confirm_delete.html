@@ -1,0 +1,26 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Delete {{ equipment.name }} — Equipment Tracker{% endblock %}
+{% block page_title %}Delete Equipment{% endblock %}
+
+{% block content %}
+<div class="form-layout">
+  <div class="form-card">
+    <div class="delete-warning">
+      <div class="delete-warning__icon">⚠</div>
+      <h3>Are you sure?</h3>
+      <p>You are about to permanently delete:</p>
+      <div class="delete-warning__target">
+        <strong>{{ equipment.name }}</strong>
+        <code>{{ equipment.serial_number }}</code>
+        <span>{{ equipment.location }}</span>
+      </div>
+      <p class="delete-warning__note">This action cannot be undone.</p>
+    </div>
+    <form method="post" class="form-actions form-actions--center">
+      {% csrf_token %}
+      <button type="submit" class="btn btn--danger">Yes, Delete Permanently</button>
+      <a href="{% url 'tracker:equipment_detail' equipment.pk %}" class="btn btn--ghost">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

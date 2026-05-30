@@ -1,0 +1,4 @@
+{% if status == "in_service" %}<span class="badge badge--green">In Service</span>
+{% elif status == "under_maintenance" %}<span class="badge badge--yellow">Under Maintenance</span>
+{% elif status == "out_of_service" %}<span class="badge badge--red">Out of Service</span>
+{% else %}<span class="badge badge--grey">Unknown</span>{% endif %}

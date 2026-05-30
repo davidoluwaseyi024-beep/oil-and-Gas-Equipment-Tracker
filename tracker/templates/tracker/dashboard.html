@@ -1,0 +1,158 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Dashboard — Equipment Tracker{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'tracker:equipment_create' %}" class="btn btn--primary btn--sm">+ Add Equipment</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Stat cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card__icon stat-card__icon--blue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    </div>
+    <div class="stat-card__body">
+      <div class="stat-card__value">{{ total }}</div>
+      <div class="stat-card__label">Total Equipment</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__icon stat-card__icon--green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="stat-card__body">
+      <div class="stat-card__value">{{ in_service }}</div>
+      <div class="stat-card__label">In Service</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__icon stat-card__icon--yellow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="stat-card__body">
+      <div class="stat-card__value">{{ overdue }}</div>
+      <div class="stat-card__label">Overdue</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__icon stat-card__icon--orange">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <div class="stat-card__body">
+      <div class="stat-card__value">{{ critical }}</div>
+      <div class="stat-card__label">Critical Units</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__icon stat-card__icon--purple">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+    </div>
+    <div class="stat-card__body">
+      <div class="stat-card__value">{{ maintenance }}</div>
+      <div class="stat-card__label">Under Maintenance</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__icon stat-card__icon--teal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+    <div class="stat-card__body">
+      <div class="stat-card__value">{{ due_soon }}</div>
+      <div class="stat-card__label">Due in 14 Days</div>
+    </div>
+  </div>
+</div>
+
+<!-- Two-column panels -->
+<div class="panel-grid">
+
+  <!-- Overdue -->
+  <div class="panel">
+    <div class="panel__header">
+      <h3 class="panel__title">⚠ Overdue Service</h3>
+      <a href="{% url 'tracker:equipment_overdue' %}" class="panel__link">View all →</a>
+    </div>
+    <div class="panel__body">
+      {% if overdue_items %}
+        {% for eq in overdue_items %}
+        <div class="panel-row panel-row--overdue">
+          <div class="panel-row__main">
+            <a href="{% url 'tracker:equipment_detail' eq.pk %}" class="panel-row__name">{{ eq.name }}</a>
+            <span class="panel-row__meta">{{ eq.location }}</span>
+          </div>
+          <div>
+            {% if eq.next_due_date %}
+              <span class="badge badge--red">{{ eq.next_due_date|date:"d M Y" }}</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-panel">
+          <span>✓ No overdue equipment</span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Due Soon -->
+  <div class="panel">
+    <div class="panel__header">
+      <h3 class="panel__title">🗓 Due in 14 Days</h3>
+      <a href="{% url 'tracker:equipment_list' %}" class="panel__link">View all →</a>
+    </div>
+    <div class="panel__body">
+      {% if due_soon_items %}
+        {% for eq in due_soon_items %}
+        <div class="panel-row">
+          <div class="panel-row__main">
+            <a href="{% url 'tracker:equipment_detail' eq.pk %}" class="panel-row__name">{{ eq.name }}</a>
+            <span class="panel-row__meta">{{ eq.location }}</span>
+          </div>
+          <div>
+            {% if eq.next_due_date %}
+              <span class="badge badge--yellow">{{ eq.next_due_date|date:"d M Y" }}</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-panel">No upcoming services</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recently Added -->
+  <div class="panel panel--wide">
+    <div class="panel__header">
+      <h3 class="panel__title">Recently Added</h3>
+      <a href="{% url 'tracker:equipment_list' %}" class="panel__link">View all →</a>
+    </div>
+    <div class="panel__body">
+      {% if recent %}
+        <table class="mini-table">
+          <thead><tr><th>Name</th><th>Location</th><th>Status</th><th>Added</th></tr></thead>
+          <tbody>
+          {% for eq in recent %}
+            <tr>
+              <td><a href="{% url 'tracker:equipment_detail' eq.pk %}">{{ eq.name }}</a></td>
+              <td>{{ eq.location }}</td>
+              <td>{% include 'tracker/_status_badge.html' with status=eq.status %}</td>
+              <td>{{ eq.created_at|date:"d M Y" }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-panel">No equipment yet. <a href="{% url 'tracker:equipment_create' %}">Add some →</a></div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

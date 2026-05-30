@@ -1,0 +1,108 @@
+{% extends 'tracker/base.html' %}
+{% block title %}{{ equipment.name }} — Equipment Tracker{% endblock %}
+{% block nav_list %}active{% endblock %}
+{% block page_title %}Equipment Detail{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'tracker:equipment_edit' equipment.pk %}" class="btn btn--primary btn--sm">Edit</a>
+  <a href="{% url 'tracker:equipment_delete' equipment.pk %}" class="btn btn--danger btn--sm">Delete</a>
+{% endblock %}
+
+{% block content %}
+<div class="detail-layout">
+
+  <!-- Main info card -->
+  <div class="detail-card">
+    <div class="detail-card__header">
+      <div>
+        <h2 class="detail-card__title">{{ equipment.name }}</h2>
+        <code class="detail-card__serial">{{ equipment.serial_number }}</code>
+      </div>
+      <div class="detail-card__badges">
+        {% include 'tracker/_status_badge.html' with status=equipment.status %}
+        {% if equipment.critical %}<span class="badge badge--red">⚑ Critical</span>{% endif %}
+        {% if equipment.is_overdue %}<span class="badge badge--red">OVERDUE</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-field">
+        <span class="detail-label">Location</span>
+        <span class="detail-value">{{ equipment.location }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Condition</span>
+        <span class="detail-value">
+          {% if equipment.condition == 'good' %}<span class="badge badge--green">Good</span>
+          {% elif equipment.condition == 'fair' %}<span class="badge badge--yellow">Fair</span>
+          {% else %}<span class="badge badge--red">Poor</span>{% endif %}
+        </span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Last Service</span>
+        <span class="detail-value">
+          {% if equipment.last_service_date %}{{ equipment.last_service_date|date:"d M Y" }}{% else %}<span class="text-muted">Not recorded</span>{% endif %}
+        </span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Next Due</span>
+        <span class="detail-value">
+          {% if equipment.next_due_date %}
+            {{ equipment.next_due_date|date:"d M Y" }}
+            {% if equipment.is_overdue %}
+              <span class="overdue-tag">OVERDUE</span>
+            {% elif equipment.days_until_due <= 14 %}
+              <span class="due-soon-tag">Due in {{ equipment.days_until_due }} days</span>
+            {% else %}
+              <span class="text-muted">({{ equipment.days_until_due }} days)</span>
+            {% endif %}
+          {% else %}<span class="text-muted">Not scheduled</span>{% endif %}
+        </span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Added</span>
+        <span class="detail-value">{{ equipment.created_at|date:"d M Y, H:i" }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Last Updated</span>
+        <span class="detail-value">{{ equipment.updated_at|date:"d M Y, H:i" }}</span>
+      </div>
+    </div>
+
+    {% if equipment.notes %}
+    <div class="detail-notes">
+      <span class="detail-label">Notes</span>
+      <p>{{ equipment.notes }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Sidebar info -->
+  <div class="detail-sidebar">
+    <div class="side-card">
+      <h4 class="side-card__title">Quick Actions</h4>
+      <a href="{% url 'tracker:equipment_edit' equipment.pk %}" class="btn btn--primary btn--full">Edit Equipment</a>
+      <a href="{% url 'tracker:equipment_list' %}" class="btn btn--secondary btn--full" style="margin-top:8px;">← Back to List</a>
+      <a href="{% url 'tracker:equipment_delete' equipment.pk %}" class="btn btn--danger btn--full" style="margin-top:8px;">Delete</a>
+    </div>
+
+    <div class="side-card">
+      <h4 class="side-card__title">Service Status</h4>
+      {% if equipment.is_overdue %}
+        <div class="status-indicator status-indicator--red">Service Overdue</div>
+        <p class="side-card__text">This equipment missed its scheduled service date. Schedule maintenance immediately.</p>
+      {% elif equipment.days_until_due is not None and equipment.days_until_due <= 14 %}
+        <div class="status-indicator status-indicator--yellow">Service Due Soon</div>
+        <p class="side-card__text">Service due in {{ equipment.days_until_due }} days.</p>
+      {% elif equipment.next_due_date %}
+        <div class="status-indicator status-indicator--green">On Schedule</div>
+        <p class="side-card__text">Next service in {{ equipment.days_until_due }} days.</p>
+      {% else %}
+        <div class="status-indicator status-indicator--grey">Not Scheduled</div>
+        <p class="side-card__text">No service date has been set for this equipment.</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
